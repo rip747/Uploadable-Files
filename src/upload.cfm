@@ -38,7 +38,7 @@
 		<cfset loc.ret = _cffileupload(
 				argumentCollection=loc.args
 			)>
-		<cfcatch type="any"><cfset loc.ret = false></cfcatch>
+		<cfcatch type="any"></cfcatch>
 	</cftry>
 
 	<cfreturn loc.ret>

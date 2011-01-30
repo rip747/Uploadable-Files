@@ -1,7 +1,8 @@
 <cffunction name="uploadableFile" access="public" output="false" hint="model method to call to configure the upload">
 	<cfargument name="property" type="string" required="true" hint="property that we want to upload files for">
 	<cfargument name="destination" type="string" required="false" default="#expandPath(get('filePath'))#" hint="where to place the file after uploading">
-	<cfargument name="message" type="string" required="false" default="Error during photo upload." hint="error message when an upload fails">
+	<cfargument name="message" type="string" required="false" default="Error during upload." hint="error message when an upload fails">
+	<cfargument name="removeOnDelete" type="boolean" required="false" default="true" hint="removes the upload when the record is deleted">
 	<cfset var loc = {}>
 	
 	<!--- setup class variable --->

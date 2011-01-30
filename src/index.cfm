@@ -69,6 +69,16 @@
 	Full path to the directory your want your upload placed.
 </p>
 
+<h3>removeOnDelete</h3>
+<ul>
+	<li>type: boolean</li>
+	<li>required: false</li>
+	<li>default: true</li>
+</ul>
+<p>
+	Should we delete the upload when the record is deleted
+</p>
+
 <h3>message</h3>
 <ul>
 	<li>type: string</li>
