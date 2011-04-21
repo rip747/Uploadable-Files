@@ -15,6 +15,7 @@
 	
 	<!--- save the arguments passed in --->
 	<cfset loc.args = duplicate(arguments)>
+	<cfset loc.args.uploaded = false>
 	
 	<!--- setup container for property --->
 	<cfset variables.wheels.class._uploadableFiles[arguments.property] = {}>
@@ -40,4 +41,19 @@
 		</cfif>
 	</cfloop>
 	
+</cffunction>
+
+<cffunction name="$PluginUploadableFileConfig" hint="sometimes you need to have a dynamic destination. in order to do this, we see if the destination ends with `()` and if so evaluate the method name">
+	<cfargument name="key" type="string" required="true">
+	<cfset var loc = {}>
+	<cfset loc.config = variables.wheels.class._uploadableFiles[arguments.key]>
+	<cfif Right(loc.config["destination"], 2) eq "()">
+		<cfset loc.config["destination"] = evaluate(loc.config["destination"])>
+	</cfif>
+	<cfreturn loc.config>
+</cffunction>
+
+<cffunction name="wasUploaded" returntype="boolean" hint="tell whether an upload was performed for the property. can be used to by pass a validation during an update when a file isn't uploaded">
+	<cfargument name="property" type="string" required="true">
+	<cfreturn $PluginUploadableFileConfig(arguments.property).uploaded>
 </cffunction>

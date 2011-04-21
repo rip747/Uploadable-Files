@@ -1,16 +1,20 @@
 <cffunction name="_UFuploadFile" returntype="void" output="false" hint="this will perform the file upload">
 	<cfset var loc = {}>
-	
+
 	<!--- loop through and upload each file --->
 	<cfloop collection="#variables.wheels.class._uploadableFiles#" item="loc.i">
+		
 		<!--- only upload if the property has a value. --->
 		<cfif len(this[loc.i])>
+		
 			<!--- perform the upload and catch any errors --->
-			<cfset loc.ret = _uploadFile(argumentCollection=variables.wheels.class._uploadableFiles[loc.i])>
+			<cfset loc.args = $PluginUploadableFileConfig(loc.i)>
+			<cfset loc.ret = _uploadFile(argumentCollection=loc.args)>
 			<cfif !StructIsEmpty(loc.ret)>
 				<cfset this[loc.i] = loc.ret.serverfile>
+				<cfset variables.wheels.class._uploadableFiles[loc.i].uploaded = true>
 			<cfelse>
-				<cfset addError(property="#loc.i#", message="#variables.wheels.class._uploadableFiles[loc.i].message#")>
+				<cfset addError(property="#loc.i#", message="#loc.args.message#")>
 				<cfset this[loc.i] = "">
 			</cfif>
 
@@ -48,7 +52,7 @@
 
 	<!--- loop through the properties we handle --->
 	<cfloop collection="#variables.wheels.class._uploadableFiles#" item="loc.i">
-		<cfset loc.config = variables.wheels.class._uploadableFiles[loc.i]>
+		<cfset loc.config = $PluginUploadableFileConfig(loc.i)>
 		<cfif loc.config["removeOnDelete"]>
 			<cfif StructKeyExists(this, loc.i) AND len(this[loc.i])>
 				<cfset loc.theFile = listappend(loc.config["destination"], this[loc.i], "\/")>
