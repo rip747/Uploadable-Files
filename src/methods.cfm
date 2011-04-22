@@ -16,6 +16,7 @@
 	<!--- save the arguments passed in --->
 	<cfset loc.args = duplicate(arguments)>
 	<cfset loc.args.uploaded = false>
+	<cfset loc.args.virtual = "_uf_original_#arguments.property#">
 	
 	<!--- setup container for property --->
 	<cfset variables.wheels.class._uploadableFiles[arguments.property] = {}>
@@ -29,6 +30,14 @@
 	<!--- append all argument to the class variable --->
 	<cfset structDelete(loc.args, "property", false)>
 	<cfset structAppend(variables.wheels.class._uploadableFiles[arguments.property], loc.args)>
+	
+	<!--- 
+	We need to be able to save the original value of the property in a virutal property.
+	The whole point of this is because during an edit that you display the value of the
+	property (like providing a link to the current file) and there are errors on the
+	object, the property gets sets to an empty string.	
+	 --->
+	<cfset this[loc.args.virtual] = "">
 
 </cffunction>
 

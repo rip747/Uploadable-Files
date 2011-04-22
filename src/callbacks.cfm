@@ -4,11 +4,12 @@
 	<!--- loop through and upload each file --->
 	<cfloop collection="#variables.wheels.class._uploadableFiles#" item="loc.i">
 		
+		<cfset loc.args = $PluginUploadableFileConfig(loc.i)>
+		
 		<!--- only upload if the property has a value. --->
 		<cfif len(this[loc.i])>
 		
 			<!--- perform the upload and catch any errors --->
-			<cfset loc.args = $PluginUploadableFileConfig(loc.i)>
 			<cfset loc.ret = _uploadFile(argumentCollection=loc.args)>
 			<cfif !StructIsEmpty(loc.ret)>
 				<cfset this[loc.i] = loc.ret.serverfile>
@@ -17,6 +18,10 @@
 				<cfset addError(property="#loc.i#", message="#loc.args.message#")>
 				<cfset this[loc.i] = "">
 			</cfif>
+			
+		<cfelse>
+		
+			<cfset this[loc.i] = this[loc.args.virtual]>
 
 		</cfif>
 	</cfloop>
@@ -65,12 +70,25 @@
 
 </cffunction>
 
+<cffunction name="_UFSetVirtualProperty">
+	<cfset var loc = {}>
+
+ 	<!--- loop through the properties we handle --->
+	<cfloop collection="#variables.wheels.class._uploadableFiles#" item="loc.i">
+		<cfif StructKeyExists(arguments, loc.i)>
+			<cfset this[variables.wheels.class._uploadableFiles[loc.i].virtual] = arguments[loc.i]>
+		</cfif>
+	</cfloop>
+
+</cffunction>
+
 <cffunction name="_setupCallbacks" returntype="void" output="false">
 	<cfset var loc = {}>
 
-	<cfset $registerCallback("beforeValidation", "_UFuploadFile")>
-	<cfset $registerCallback("beforeSave", "_UFRemoveProperties")>
-	<cfset $registerCallback("afterSave", "_UFReaddProperties")>
-	<cfset $registerCallback("afterDelete", "_UFDeleteUpload")>
+	<cfset beforeValidation("_UFuploadFile")>
+	<cfset beforeSave("_UFRemoveProperties")>
+	<cfset afterSave("_UFReaddProperties")>
+	<cfset afterDelete("_UFDeleteUpload")>
+	<cfset afterFind("_UFSetVirtualProperty")>
 	
 </cffunction>
