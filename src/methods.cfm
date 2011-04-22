@@ -15,7 +15,6 @@
 	
 	<!--- save the arguments passed in --->
 	<cfset loc.args = duplicate(arguments)>
-	<cfset loc.args.uploaded = false>
 	<cfset loc.args.virtual = "_uf_original_#arguments.property#">
 	
 	<!--- setup container for property --->
@@ -60,9 +59,4 @@
 		<cfset loc.config["destination"] = evaluate(loc.config["destination"])>
 	</cfif>
 	<cfreturn loc.config>
-</cffunction>
-
-<cffunction name="wasUploaded" returntype="boolean" hint="tell whether an upload was performed for the property. can be used to by pass a validation during an update when a file isn't uploaded">
-	<cfargument name="property" type="string" required="true">
-	<cfreturn $PluginUploadableFileConfig(arguments.property).uploaded>
 </cffunction>
