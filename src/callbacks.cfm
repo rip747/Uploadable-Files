@@ -21,7 +21,9 @@
 			
 		<cfelse>
 		
-			<cfset this[loc.i] = this[loc.args.virtual]>
+			<cfif StructKeyExists(this, loc.args.virtual)>
+				<cfset this[loc.i] = this[loc.args.virtual]>
+			</cfif>
 
 		</cfif>
 	</cfloop>
