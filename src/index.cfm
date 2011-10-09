@@ -1,5 +1,5 @@
 <cfoutput>
-<h1>Uploadble Files</h1>
+<h1>Uploadable Files</h1>
 
 <p>This plugin resides in the model layer. This makes it so you can have all the logic for uploading your files contained within you model.</p>
 
