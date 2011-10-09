@@ -1,3 +1,8 @@
+0.5 10-9-2011
+================================
+* check for the existense of the form post before uploading
+
+
 0.4 07-21-2011
 ================================
 * check to see if virtual property exist before assignment 
@@ -17,6 +22,7 @@
 * Wheels compatibility: 1.1.1
 
 0.1 01-27-2011
+=================================
 
 * Initial release.
 * Wheels compatibility: 1.1.1
