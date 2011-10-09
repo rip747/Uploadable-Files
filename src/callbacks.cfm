@@ -21,7 +21,7 @@
 			
 		<cfelse>
 		
-			<cfif StructKeyExists(this, loc.args.virtual)>
+			<cfif StructKeyExists(this, loc.args.virtual) && !variables.wheels.class._uploadableFiles[loc.i].nullWhenBlank>
 				<cfset this[loc.i] = this[loc.args.virtual]>
 			</cfif>
 
@@ -35,7 +35,8 @@
 
 	<!--- loop through the properties we handle --->
 	<cfloop collection="#variables.wheels.class._uploadableFiles#" item="loc.i">
-		<cfif !len(this[loc.i])>
+		<cfif StructKeyExists(this, loc.i) && !len(this[loc.i]) && !variables.wheels.class._uploadableFiles[loc.i].nullWhenBlank>
+			<cfdump var="#variables.wheels.class._uploadableFiles[loc.i]#">
 			<cfset structDelete(this, loc.i, false)>
 		</cfif>
 	</cfloop>
