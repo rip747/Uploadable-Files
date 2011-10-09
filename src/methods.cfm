@@ -56,8 +56,9 @@
 	<cfargument name="key" type="string" required="true">
 	<cfset var loc = {}>
 	<cfset loc.config = variables.wheels.class._uploadableFiles[arguments.key]>
-	<cfif Right(loc.config["destination"], 2) eq "()">
-		<cfset loc.config["destination"] = evaluate(loc.config["destination"])>
+	<cfif IsCustomFunction(this[loc.config['destination']])>
+		<cfinvoke component="#this#" method="#loc.config['destination']#" returnvariable="loc.ret">
+		<cfset loc.config['destination'] = loc.ret>
 	</cfif>
 	<cfreturn loc.config>
 </cffunction>
