@@ -190,7 +190,7 @@
 		<cfargument name="eval" type="boolean" required="false" default="false">
 		<cfset var loc = {}>
 		<cfset loc.config = variables.wheels.class._uploadableFiles[arguments.key]>
-		<cfif arguments.eval && IsCustomFunction(this[loc.config['destination']])>
+		<cfif arguments.eval && IsValid("variablename", loc.config['destination']) && StructKeyExists(this, loc.config['destination']) && IsCustomFunction(this[loc.config['destination']])>
 			<cfinvoke component="#this#" method="#loc.config['destination']#" returnvariable="loc.ret">
 			<cfset loc.config['destination'] = loc.ret>
 		</cfif>
