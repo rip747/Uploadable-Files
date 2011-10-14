@@ -25,7 +25,6 @@
 		
 		<!--- save the arguments passed in --->
 		<cfset loc.args = duplicate(arguments)>
-		<cfset structDelete(loc.args, "property", false)>
 		<cfset loc.args.virtual = "_uf_original_#arguments.property#">
 		<!--- 
 		by default, the form fieldname is modelName[property]
@@ -75,13 +74,14 @@
 		<cfloop collection="#loc.data#" item="loc.key">
 			
 			<cfset loc.config = _getUFProperty(loc.key, true)>
-	
+
 			<!--- only upload if the property has a value. and the form field is present --->
 			<cfif propertyIsPresent(loc.key) and StructKeyExists(form, loc.config.filefield)>
-			
+
 				<!--- perform the upload and catch any errors --->
-				<cfset loc.ret = _uploadFile(argumentCollection=loc.config)>
+				<cfset loc.ret = _UFHandleUpload(argumentCollection=loc.config)>
 				<cfif !StructIsEmpty(loc.ret)>
+					<cfset _setUFData(loc.config.property, loc.ret)>
 					<cfset this[loc.key] = loc.ret.serverfile>
 				<cfelse>
 					<cfset addError(property="#loc.key#", message="#loc.config.message#")>
@@ -89,7 +89,7 @@
 				</cfif>
 				
 			<cfelse>
-			
+
 				<cfif hasProperty(loc.config.virtual) && !loc.config.nullWhenBlank>
 					<cfset this[loc.key] = this[loc.config.virtual]>
 				</cfif>
@@ -135,11 +135,13 @@
 		<!--- loop through the properties we handle --->
 		<cfset loc.data = _getUFData()>
 		<cfloop collection="#loc.data#" item="loc.key">
-			
+
 			<cfset loc.config = _getUFProperty(loc.key, true)>
 
 			<cfif loc.config["removeOnDelete"]>
+
 				<cfif propertyIsPresent(loc.key)>
+					
 					<cfset loc.theFile = listappend(loc.config["destination"], this[loc.key], "\/")>
 					<cfif FileExists(loc.theFile)>
 						<cffile action="delete" file="#loc.theFile#">
@@ -148,7 +150,7 @@
 			</cfif>
 			
 		</cfloop>
-	
+
 	</cffunction>
 	
 	<cffunction name="_UFCallBackSetVirtualProperties">
@@ -184,6 +186,11 @@
 		<cfreturn variables.wheels.class._uploadableFiles>
 	</cffunction>
 	
+	<cffunction name="_setUFData" hint="return the class variables container for the plugin">
+		<cfargument name="key" type="string" required="true">
+		<cfargument name="data" type="any" required="true">
+		<cfset variables.wheels.class._uploadableFiles[arguments.key]["data"] = arguments.data>
+	</cffunction>	
 	
 	<cffunction name="_getUFProperty" hint="sometimes you need to have a dynamic destination. in order to do this, we see if the destination ends with `()` and if so evaluate the method name">
 		<cfargument name="key" type="string" required="true">
@@ -196,19 +203,11 @@
 		</cfif>
 		<cfreturn loc.config>
 	</cffunction>
-	
-	
-	<cffunction name="_evalUFDesination" hint="gets an evaluates the destination for the file">
-		<cfargument name="desination" type="string" required="true">
-		<cfif IsCustomFunction(arguments.destination)>
-			<cfinvoke component="#this#" method="#arguments.destination#" returnvariable="loc.ret">
-			<cfset loc.config['destination'] = loc.ret>
-		</cfif>
-	</cffunction>
-	
+
 	
 	<!--- private methods --->
-	<cffunction name="_uploadFile" returntype="any" output="false">
+	<cffunction name="_UFHandleUpload" returntype="any" output="false">
+		<cfargument name="property" type="string" required="true">
 		<cfargument name="fileField" type="string" required="true">
 		<cfargument name="destination" type="string" required="false" default="#expandpath(get('filePath'))#">
 		<cfset var loc = {}>
@@ -220,7 +219,7 @@
 		see if the content_type is mulitpart which means a file was uploaded
 		if not get out. no use wasting time
 		--->
-		<cfif not left(cgi.CONTENT_TYPE, len(loc.mp)) eq loc.mp>
+		<cfif not left(request.cgi.CONTENT_TYPE, len(loc.mp)) eq loc.mp>
 			<cfreturn loc.ret>
 		</cfif>
 	
@@ -245,17 +244,19 @@
 		
 		<!--- upload the file --->
 		<cftry>
-			<cfset loc.ret = _cffileupload(
+			<cfset loc.ret = _UFCFFileUpload(
 					argumentCollection=loc.args
 				)>
-			<cfcatch type="any"></cfcatch>
+		<cfcatch type="any">
+				<cfset _setUFData(arguments.property, cfcatch)>
+			</cfcatch>
 		</cftry>
 	
 		<cfreturn loc.ret>
 		
 	</cffunction>
 		
-	<cffunction name="_cffileupload" returntype="struct" output="false">
+	<cffunction name="_UFCFFileUpload" returntype="struct" output="false">
 		<cfargument name="deleteBadFile" type="boolean" required="false" default="true" hint="should we delete an invalid files that are uploaded from the temp directory.">
 		<cfargument name="badExtensions" type="string" required="false" default="" hint="appends the internal extension list. any file with these extensions is automatically invalid.">
 		<cfargument name="mimeTypes" type="struct" required="false" default="#structnew()#" hint="appends or replace the internal list of mimetypes with your own custom list.">
@@ -314,7 +315,7 @@
 		<cfset arguments.destination = getTempDirectory()>
 	
 		<!--- execute upload --->
-		<cffile attributeCollection="#arguments#">
+		<cfset loc.cffile = __UFCFFileUpload(argumentCollection=arguments)>
 	
 		<!--- get the full filename that was uploaded --->
 		<cfset loc.fileuploaded = arguments.destination & loc.cffile["serverFile"]>
@@ -333,7 +334,8 @@
 		</cfif>
 		
 		<!--- full path to move the file to --->
-		<cfset loc.finaldestination = listappend(loc.destination, loc.cffile["serverFile"], "\/")>
+		<cfset loc.destination = ListChangeDelims(loc.destination, "/", "\")>
+		<cfset loc.finaldestination = listappend(loc.destination, loc.cffile["serverFile"], "/")>
 		
 		<!--- handle makeunique when moving --->
 		<cfif structkeyexists(arguments, "nameconflict") and arguments.nameconflict eq "makeunique">
@@ -366,6 +368,12 @@
 		
 		<cfreturn loc.cffile>
 		
+	</cffunction>
+	
+	<cffunction name="__UFCFFileUpload">
+		<cfset var loc = {}>
+		<cffile attributeCollection="#arguments#">
+		<cfreturn loc.cffile>
 	</cffunction>
 
 </cfcomponent>
