@@ -65,68 +65,57 @@
 		
 	</cffunction>
 	
-
-	
 	<cffunction name="_UFCallBackUploadFile" returntype="void" output="false" hint="this will perform the file upload">
 		<cfset var loc = {}>
-	
+
 		<cfset loc.data = _getUFData()>
 		<cfloop collection="#loc.data#" item="loc.key">
-			
 			<cfset loc.config = _getUFProperty(loc.key, true)>
-
 			<!--- only upload if the property has a value. and the form field is present --->
-			<cfif propertyIsPresent(loc.key) and StructKeyExists(form, loc.config.filefield)>
-
+			<cfif propertyIsPresent(loc.key) && StructKeyExists(form, loc.config.filefield)>
 				<!--- perform the upload and catch any errors --->
 				<cfset loc.ret = _UFHandleUpload(argumentCollection=loc.config)>
 				<cfif !StructIsEmpty(loc.ret)>
 					<cfset _setUFData(loc.config.property, loc.ret)>
 					<cfset this[loc.key] = loc.ret.serverfile>
+					<cfset this[loc.config.virtual] = loc.ret.serverfile>
 				<cfelse>
 					<cfset addError(property="#loc.key#", message="#loc.config.message#")>
 					<cfset this[loc.key] = "">
 				</cfif>
-				
-			<cfelse>
-
-				<cfif hasProperty(loc.config.virtual) && !loc.config.nullWhenBlank>
-					<cfset this[loc.key] = this[loc.config.virtual]>
-				</cfif>
-	
+			<cfelseif hasProperty(loc.key) && !loc.config.nullWhenBlank>
+				<cfset this[loc.key] = this[loc.config.virtual]>
 			</cfif>
 		</cfloop>
-	
+
 	</cffunction>
 	
 	<cffunction name="_UFCallBackRemoveProperties" hint="this prevents your property from being set to null when updating a record and not uploading a file">
 		<cfset var loc = {}>
-	
+
 		<!--- loop through the properties we handle --->
 		<cfset loc.data = _getUFData()>
 		<cfloop collection="#loc.data#" item="loc.key">
-			
 			<cfset loc.config = _getUFProperty(loc.key)>
-			
-			<cfif !loc.config.nullWhenBlank>
+			<cfif hasProperty(loc.key) && !len(this[loc.key]) && !loc.config.nullWhenBlank>
 				<cfset structDelete(this, loc.key, false)>
 			</cfif>
-			
 		</cfloop>
-	
+
 	</cffunction>
 	
 	<cffunction name="_UFCallBackReaddProperties" hint="need to readd the property back after saving">
 		<cfset var loc = {}>
-	
+
 		<!--- loop through the properties we handle --->
 		<cfset loc.data = _getUFData()>
 		<cfloop collection="#loc.data#" item="loc.key">
 			<cfif !hasProperty(loc.key)>
-				<cfset this[loc.key] = "">
+				<cfset loc.config = _getUFProperty(loc.key)>
+				<cfset this[loc.key] = this[loc.config.virtual]>
 			</cfif>
 		</cfloop>
-	
+
 	</cffunction>
 	
 	<cffunction name="_UFCallBackDeleteUpload" hint="deletes the upload when the record is deleted">
@@ -135,39 +124,31 @@
 		<!--- loop through the properties we handle --->
 		<cfset loc.data = _getUFData()>
 		<cfloop collection="#loc.data#" item="loc.key">
-
 			<cfset loc.config = _getUFProperty(loc.key, true)>
-
 			<cfif loc.config["removeOnDelete"]>
-
 				<cfif propertyIsPresent(loc.key)>
-					
 					<cfset loc.theFile = listappend(loc.config["destination"], this[loc.key], "\/")>
 					<cfif FileExists(loc.theFile)>
 						<cffile action="delete" file="#loc.theFile#">
 					</cfif>
 				</cfif>
 			</cfif>
-			
 		</cfloop>
 
 	</cffunction>
 	
 	<cffunction name="_UFCallBackSetVirtualProperties">
 		<cfset var loc = {}>
-	
+
 	 	<!--- loop through the properties we handle --->
 	 	<cfset loc.data = _getUFData()>
 		<cfloop collection="#loc.data#" item="loc.key">
-			
 			<cfset loc.config = _getUFProperty(loc.key)>
-			
 			<cfif StructKeyExists(arguments, loc.key)>
 				<cfset this[loc.config.virtual] = arguments[loc.key]>
 			</cfif>
-			
 		</cfloop>
-	
+
 	</cffunction>
 	
 	<cffunction name="_UFSetupCallbacks" returntype="void" output="false">
@@ -181,7 +162,6 @@
 	</cffunction>
 	
 	<!--- accessors --->
-	
 	<cffunction name="_getUFData" hint="return the class variables container for the plugin">
 		<cfreturn variables.wheels.class._uploadableFiles>
 	</cffunction>
@@ -204,7 +184,6 @@
 		<cfreturn loc.config>
 	</cffunction>
 
-	
 	<!--- private methods --->
 	<cffunction name="_UFHandleUpload" returntype="any" output="false">
 		<cfargument name="property" type="string" required="true">
@@ -247,7 +226,7 @@
 			<cfset loc.ret = _UFCFFileUpload(
 					argumentCollection=loc.args
 				)>
-		<cfcatch type="any">
+			<cfcatch type="any">
 				<cfset _setUFData(arguments.property, cfcatch)>
 			</cfcatch>
 		</cftry>

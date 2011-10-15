@@ -4,7 +4,7 @@
 		<cfset table("tags")>
 		<cfset uploadableFile(
 			property="description"
-			,destination=expandPath("/plugins/uploadablefiles/tests/assets/uploads")
+			,nullWhenBlank=true
 		)>
 	</cffunction>
 

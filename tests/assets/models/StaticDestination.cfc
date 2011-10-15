@@ -3,9 +3,9 @@
 	<cffunction name="init">
 		<cfset var loc = {}>
 		<cfset loc.destination = expandPath("/plugins/uploadablefiles/tests/assets/uploads")>
-		<cfset table("photos")>
+		<cfset table("tags")>
 		<cfset uploadableFile(
-			property="filedata"
+			property="description"
 			,destination=loc.destination
 		)>
 	</cffunction>

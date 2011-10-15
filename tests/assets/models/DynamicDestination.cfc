@@ -1,9 +1,9 @@
 <cfcomponent extends="wheelsMapping.Model">
 
 	<cffunction name="init">
-		<cfset table("photos")>
+		<cfset table("tags")>
 		<cfset uploadableFile(
-			property="filedata"
+			property="description"
 			,destination="_uploadDir"
 		)>
 	</cffunction>
