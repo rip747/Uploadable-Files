@@ -1,3 +1,8 @@
+0.8 04/14/2012
+================================
+* fixed an issue where an error would be thrown if the property and the form field were
+blank and nullWhenBlank was set to false.
+
 0.7 10-15-2011
 ================================
 * allow file upload field to be set to null when the value is an empty string (no upload)
