@@ -16,6 +16,7 @@
 		<cfset loc.methods = {}>
 		<cfset loc.methods["__UFCFFileUpload"] = __UFCFFileUpload>
 		<cffile action="copy" source="#loc.imagePath#" destination="#loc.tempImagePath#">
+		<cfset StructClear(form)>
 	</cffunction>
 	
 	<cffunction name="teardown">
@@ -181,6 +182,40 @@
 		<cfset assert("loc.errors[1]['message'] eq 'ohhh nooo! something went wrong!'")>
 	</cffunction>
 	
+	<cffunction name="test_multiplefiles_both_supplied">
+		<cfset obj = model("MultipleFiles").findOne()>
+		<cfset obj.inject = inject>
+		<cfset obj.inject(loc.methods)>
+		<cfset obj.city = loc.imagePath>
+		<cfset obj.zipcode = loc.imagePath>
+		<cfset form["MultipleFiles[city]"] = loc.imagePath>
+		<cfset form["MultipleFiles[zipcode]"] = loc.imagePath>
+		<cfset obj.valid()>
+		<cfset assert("left(obj.city, 4) eq 'win8'")>
+		<cfset assert("left(obj.zipcode, 4) eq 'win8'")>
+	</cffunction>
+	
+	<cffunction name="test_multiplefiles_one_supplied">
+		<cftransaction action="begin">
+			<cfset properties = model("MultipleFiles").findOne().properties()>
+			<cfset structdelete(properties, "city", false)>
+			<cfset structdelete(properties, "zipcode", false)>
+			<cfset structdelete(properties, "_UF_ORIGINAL_CITY", false)>
+			<cfset structdelete(properties, "_UF_ORIGINAL_ZIPCODE", false)>
+			<cfset obj = model("MultipleFiles").new(properties)>
+			<cfset obj.inject = inject>
+			<cfset obj.inject(loc.methods)>
+			<cfset obj.city = loc.imagePath>
+			<cfset obj.zipcode = "">
+			<cfset form["MultipleFiles[city]"] = loc.imagePath>
+			<cfset form["MultipleFiles[zipcode]"] = "">
+			<cfset obj.valid()>
+			<cftransaction action="rollback" />
+		</cftransaction>
+		<cfset assert("left(obj.city, 4) eq 'win8'")>
+		<cfset assert("left(obj.zipcode, 4) eq ''")>
+	</cffunction>
+
 	<cffunction name="__UFCFFileUpload">
 		<cfset var loc = {}>
 		<cfset loc.cffile = {}>

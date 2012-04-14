@@ -42,7 +42,7 @@
 		object, the property gets sets to an empty string.	
 		 --->
 		<cfset this[loc.args.virtual] = "">
-	
+
 	</cffunction>
 	
 	<cffunction name="uploadableFileFieldName" hint="call from outside your model within the controller to tell the plugin what form field to look for that doesn't follow conventions. there in no way to dynamically determine the form field name if convertions aren't followed.">
@@ -69,6 +69,7 @@
 		<cfset var loc = {}>
 
 		<cfset loc.data = _getUFData()>
+
 		<cfloop collection="#loc.data#" item="loc.key">
 			<cfset loc.config = _getUFProperty(loc.key, true)>
 			<!--- only upload if the property has a value. and the form field is present --->
@@ -83,7 +84,7 @@
 					<cfset addError(property="#loc.key#", message="#loc.config.message#")>
 					<cfset this[loc.key] = "">
 				</cfif>
-			<cfelseif hasProperty(loc.key) && !loc.config.nullWhenBlank>
+			<cfelseif hasProperty(loc.key) && hasProperty(loc.config.virtual) && !loc.config.nullWhenBlank>
 				<cfset this[loc.key] = this[loc.config.virtual]>
 			</cfif>
 		</cfloop>
@@ -213,14 +214,14 @@
 		<cfset loc.args.filefield = arguments.fileField>
 		<cfset loc.args.destination = arguments.destination>
 		<cfset loc.args.nameconflict = "MAKEUNIQUE">
-	
+
 		<!--- remove the fieldName, destination from the arguments scope for overloading --->
 		<cfset structdelete(arguments, "fileField", false)>
 		<cfset structdelete(arguments, "destination", false)>
 		
 		<!--- append and oveerwrite the defaults with any extra arguments --->
 		<cfset structappend(loc.args, arguments, true)>
-		
+
 		<!--- upload the file --->
 		<cftry>
 			<cfset loc.ret = _UFCFFileUpload(
@@ -326,16 +327,19 @@
 			</cfif>
 		
 		</cfif>
-	
+
 		<!--- forgot to handle mode in unix --->
 		<cfset loc.args = {}>
 		<cfset loc.args.action = "move">
+		<cfif structkeyexists(arguments, "action") AND ListFindNoCase("move,copy", arguments.action)>
+			<cfset loc.args.action = "#arguments.action#">
+		</cfif>
 		<cfset loc.args.source = "#loc.fileuploaded#">
 		<cfset loc.args.destination = "#loc.finaldestination#">
 		<cfif structkeyexists(arguments, "mode")>
 			<cfset loc.args.mode = "#arguments.mode#">
 		</cfif>
-	
+
 		<!--- move the file --->
 		<cffile attributeCollection="#loc.args#">
 	
