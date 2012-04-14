@@ -1,12 +1,18 @@
+0.7 10-15-2011
+================================
+* allow file upload field to be set to null when the value is an empty string (no upload)
+
+0.6 10-11-2011
+================================
+* fix for static file paths
+
 0.5 10-9-2011
 ================================
 * check for the existense of the form post before uploading
 
-
 0.4 07-21-2011
 ================================
 * check to see if virtual property exist before assignment 
-
 
 0.3 04-21-2011
 =================================
