@@ -1,2 +1,2 @@
-<cfcomponent extends="src.uploadablefiles">
+<cfcomponent extends="plugins.uploadablefiles.src.uploadablefiles">
 </cfcomponent>
